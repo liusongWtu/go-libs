@@ -1,4 +1,4 @@
-module libs
+module go-libs
 
 go 1.13
 
