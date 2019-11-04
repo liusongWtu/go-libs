@@ -8,24 +8,24 @@ const weibo_getuserinfo_url = "https://api.weibo.com/2/users/show.json"
 var weiboOAuth = &WeiboOAuth{}
 
 type WeiboOAuth struct {
-	appkey       string
-	appsecret    string
-	redirect_url string
+	appKey      string
+	appSecret   string
+	redirectUrl string
 }
 
 func (oauth *WeiboOAuth) Init(conf map[string]string) {
-	oauth.appkey = conf["appkey"]
-	oauth.appsecret = conf["appsecret"]
-	oauth.redirect_url = conf["redirect_url"]
+	oauth.appKey = conf["appKey"]
+	oauth.appSecret = conf["appSecret"]
+	oauth.redirectUrl = conf["redirectUrl"]
 }
 
-func (oauth *WeiboOAuth) GetAccesstoken(code string) (map[string]interface{}, error) {
+func (oauth *WeiboOAuth) GetAccessToken(code string) (map[string]interface{}, error) {
 	request := Post(weibo_getaccesstoken_url)
-	request.Param("client_id", oauth.appkey)
-	request.Param("client_secret", oauth.appsecret)
+	request.Param("client_id", oauth.appKey)
+	request.Param("client_secret", oauth.appSecret)
 	request.Param("grant_type", "authorization_code")
 	request.Param("code", code)
-	request.Param("redirect_uri", oauth.redirect_url)
+	request.Param("redirect_uri", oauth.redirectUrl)
 	var response map[string]interface{}
 	err := request.ToJSON(&response)
 	if err != nil {
@@ -34,9 +34,9 @@ func (oauth *WeiboOAuth) GetAccesstoken(code string) (map[string]interface{}, er
 	return response, nil
 }
 
-func (oauth *WeiboOAuth) GetUserinfo(accesstoken string, openid string) (map[string]interface{}, error) {
+func (oauth *WeiboOAuth) GetUserInfo(accessToken string, openid string) (map[string]interface{}, error) {
 	request := Get(weibo_getuserinfo_url)
-	request.Param("access_token", accesstoken)
+	request.Param("access_token", accessToken)
 	request.Param("uid", openid)
 	var response map[string]interface{}
 	err := request.ToJSON(&response)
@@ -47,21 +47,21 @@ func (oauth *WeiboOAuth) GetUserinfo(accesstoken string, openid string) (map[str
 }
 
 func (oauth *WeiboOAuth) Authorize(code string) (AuthorizeResult, error) {
-	accesstokenResponse, err := oauth.GetAccesstoken(code)
+	accessTokenResponse, err := oauth.GetAccessToken(code)
 	if err != nil {
 		return AuthorizeResult{false, nil}, err
 	}
-	if accesstokenResponse == nil {
+	if accessTokenResponse == nil {
 		return AuthorizeResult{false, nil}, nil
 	}
-	_, ok := accesstokenResponse["error_code"] //获取accesstoken接口返回错误码
+	_, ok := accessTokenResponse["error_code"] //获取accesstoken接口返回错误码
 	if ok {
-		return AuthorizeResult{false, accesstokenResponse}, errors.New("accesstoken接口返回错误码")
+		return AuthorizeResult{false, accessTokenResponse}, errors.New("accesstoken接口返回错误码")
 	}
-	openid := accesstokenResponse["uid"].(string)
-	accesstoken := accesstokenResponse["access_token"].(string)
-	expire := accesstokenResponse["expires_in"].(float64)
-	userInfo, err := oauth.GetUserinfo(accesstoken, openid)
+	openid := accessTokenResponse["uid"].(string)
+	accessToken := accessTokenResponse["access_token"].(string)
+	expire := accessTokenResponse["expires_in"].(float64)
+	userInfo, err := oauth.GetUserInfo(accessToken, openid)
 	if err != nil {
 		return AuthorizeResult{false, nil}, err
 	}
@@ -86,7 +86,7 @@ func (oauth *WeiboOAuth) Authorize(code string) (AuthorizeResult, error) {
 		"nickname":     userInfo["screen_name"].(string),
 		"sex":          sex,
 		"avatar_url":   userInfo["profile_image_url"].(string),
-		"access_token": accesstoken,
+		"access_token": accessToken,
 		"expire":       expire,
 		"platform":     "weibo",
 	}}, nil

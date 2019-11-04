@@ -8,8 +8,8 @@ var oauthes = make(map[string]OAuth)
 
 type OAuth interface {
 	Init(conf map[string]string)
-	GetAccesstoken(code string) (map[string]interface{}, error)
-	GetUserinfo(accesstoken string, openid string) (map[string]interface{}, error)
+	GetAccessToken(code string) (map[string]interface{}, error)
+	GetUserInfo(accessToken string, openid string) (map[string]interface{}, error)
 	Authorize(code string) (AuthorizeResult, error)
 }
 
@@ -43,5 +43,5 @@ func (m *Manager) Authorize(code string) (AuthorizeResult, error) {
 
 type AuthorizeResult struct {
 	Result   bool
-	Userinfo map[string]interface{}
+	UserInfo map[string]interface{}
 }
