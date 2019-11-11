@@ -4,6 +4,12 @@ import (
 	"fmt"
 )
 
+const (
+	WECHAT = "wechat"
+	QQ     = "qq"
+	WEIBO  = "weibo"
+)
+
 var oauthes = make(map[string]OAuth)
 
 type OAuth interface {
@@ -11,6 +17,7 @@ type OAuth interface {
 	GetAccessToken(code string) (map[string]interface{}, error)
 	GetUserInfo(accessToken string, openid string) (map[string]interface{}, error)
 	Authorize(code string) (AuthorizeResult, error)
+	Code2Session(code string) (map[string]interface{}, error)
 }
 
 func RegisterPlatform(name string, oauth OAuth) {
@@ -28,17 +35,13 @@ type Manager struct {
 	oauth OAuth
 }
 
-func NewManager(platformName string, conf map[string]string) (*Manager, error) {
+func GetOauth(platformName string, conf map[string]string) (OAuth, error) {
 	oauth, ok := oauthes[platformName]
 	if !ok {
 		return nil, fmt.Errorf("unknown platform %q", platformName)
 	}
 	oauth.Init(conf)
-	return &Manager{oauth}, nil
-}
-
-func (m *Manager) Authorize(code string) (AuthorizeResult, error) {
-	return m.oauth.Authorize(code)
+	return oauth, nil
 }
 
 type AuthorizeResult struct {

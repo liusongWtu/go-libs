@@ -1,6 +1,10 @@
 package oauth
 
-import "errors"
+import (
+	"errors"
+
+	"libs/httplib"
+)
 
 const weibo_getaccesstoken_url = "https://api.weibo.com/oauth2/access_token"
 const weibo_getuserinfo_url = "https://api.weibo.com/2/users/show.json"
@@ -20,7 +24,7 @@ func (oauth *WeiboOAuth) Init(conf map[string]string) {
 }
 
 func (oauth *WeiboOAuth) GetAccessToken(code string) (map[string]interface{}, error) {
-	request := Post(weibo_getaccesstoken_url)
+	request := httplib.Post(weibo_getaccesstoken_url)
 	request.Param("client_id", oauth.appKey)
 	request.Param("client_secret", oauth.appSecret)
 	request.Param("grant_type", "authorization_code")
@@ -35,7 +39,7 @@ func (oauth *WeiboOAuth) GetAccessToken(code string) (map[string]interface{}, er
 }
 
 func (oauth *WeiboOAuth) GetUserInfo(accessToken string, openid string) (map[string]interface{}, error) {
-	request := Get(weibo_getuserinfo_url)
+	request := httplib.Get(weibo_getuserinfo_url)
 	request.Param("access_token", accessToken)
 	request.Param("uid", openid)
 	var response map[string]interface{}
@@ -92,6 +96,10 @@ func (oauth *WeiboOAuth) Authorize(code string) (AuthorizeResult, error) {
 	}}, nil
 }
 
+func (oauth *WeiboOAuth) Code2Session(code string) (map[string]interface{}, error) {
+	return nil,errors.New("not support")
+}
+
 func init() {
-	RegisterPlatform("weibo", weiboOAuth)
+	RegisterPlatform(WEIBO, weiboOAuth)
 }

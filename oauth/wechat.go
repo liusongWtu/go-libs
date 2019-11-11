@@ -1,7 +1,13 @@
 package oauth
 
-import "errors"
+import (
+	"errors"
+	"fmt"
 
+	"libs/httplib"
+)
+
+const wechat_code2Session = "https://api.weixin.qq.com/sns/jscode2session?"
 const wechat_getaccesstoken_url = "https://api.weixin.qq.com/sns/oauth2/access_token"
 const wechat_getuserinfo_url = "https://api.weixin.qq.com/sns/userinfo"
 
@@ -17,8 +23,26 @@ func (oauth *WeChatOAuth) Init(conf map[string]string) {
 	oauth.appSecret = conf["appSecret"]
 }
 
+func (oauth *WeChatOAuth) Code2Session(code string) (map[string]interface{}, error) {
+	request := httplib.Get(wechat_code2Session)
+	request.Param("appid", oauth.appKey)
+	request.Param("secret", oauth.appSecret)
+	request.Param("js_code", code)
+	request.Param("grant_type", "authorization_code")
+	var response map[string]interface{}
+	err := request.ToJSON(&response)
+	if err != nil {
+		return nil, err
+	}
+	if _, ok := response["openid"]; !ok {
+		return nil, fmt.Errorf("Code2Session error,code:%.f,msg:%s", response["errcode"], response["errmsg"])
+	}
+
+	return response, nil
+}
+
 func (oauth *WeChatOAuth) GetAccessToken(code string) (map[string]interface{}, error) {
-	request := Get(wechat_getaccesstoken_url)
+	request := httplib.Get(wechat_getaccesstoken_url)
 	request.Param("appid", oauth.appKey)
 	request.Param("secret", oauth.appSecret)
 	request.Param("code", code)
@@ -32,7 +56,7 @@ func (oauth *WeChatOAuth) GetAccessToken(code string) (map[string]interface{}, e
 }
 
 func (oauth *WeChatOAuth) GetUserInfo(accessToken string, openid string) (map[string]interface{}, error) {
-	request := Get(wechat_getuserinfo_url)
+	request := httplib.Get(wechat_getuserinfo_url)
 	request.Param("access_token", accessToken)
 	request.Param("openid", openid)
 	var response map[string]interface{}
@@ -83,5 +107,5 @@ func (oauth *WeChatOAuth) Authorize(code string) (AuthorizeResult, error) {
 }
 
 func init() {
-	RegisterPlatform("wechat", weChatOAuth)
+	RegisterPlatform(WECHAT, weChatOAuth)
 }

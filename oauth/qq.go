@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+
+	"libs/httplib"
 )
 
 const qq_getaccesstoken_url = "https://graph.qq.com/oauth2.0/token"
@@ -25,7 +27,7 @@ func (oauth *QQOAuth) Init(conf map[string]string) {
 }
 
 func (oauth *QQOAuth) GetAccessToken(code string) (map[string]interface{}, error) {
-	request := Get(qq_getaccesstoken_url)
+	request := httplib.Get(qq_getaccesstoken_url)
 	request.Param("grant_type", "authorization_code")
 	request.Param("client_id", oauth.appKey)
 	request.Param("client_secret", oauth.appSecret)
@@ -45,7 +47,7 @@ func (oauth *QQOAuth) GetAccessToken(code string) (map[string]interface{}, error
 }
 
 func (oauth *QQOAuth) GetUserInfo(accessToken string, openid string) (map[string]interface{}, error) {
-	request := Get(qq_getuserinfo_url)
+	request := httplib.Get(qq_getuserinfo_url)
 	request.Param("access_token", accessToken)
 	request.Param("oauth_consumer_key", oauth.appKey)
 	request.Param("openid", openid)
@@ -104,7 +106,7 @@ func (oauth *QQOAuth) Authorize(code string) (AuthorizeResult, error) {
 }
 
 func (oauth *QQOAuth) GetOpenid(accesstoken string) map[string]interface{} {
-	request := Get(qq_openid_url)
+	request := httplib.Get(qq_openid_url)
 	request.Param("access_token", accesstoken)
 	request.Param("unionid", "1")
 	responseStr, _ := request.String()
@@ -113,6 +115,6 @@ func (oauth *QQOAuth) GetOpenid(accesstoken string) map[string]interface{} {
 	return response
 }
 
-func init() {
-	RegisterPlatform("qq", qqOAuth)
+func (oauth *QQOAuth) Code2Session(code string) (map[string]interface{}, error) {
+	return nil, errors.New("not support")
 }
