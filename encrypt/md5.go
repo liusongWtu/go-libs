@@ -10,3 +10,9 @@ func Md5(val string) string {
 	m.Write([]byte(val))
 	return hex.EncodeToString(m.Sum(nil))
 }
+
+//func Md5New(val string) string {
+//	tokenBytes := md5.Sum([]byte(val))
+//	token := fmt.Sprintf("%x", tokenBytes)
+//	return token
+//}
