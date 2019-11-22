@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
@@ -35,7 +36,7 @@ func TestRedisCache(t *testing.T) {
 		t.Error("get err")
 	}
 
-	if err = bm.Incr("astaxie"); err != nil {
+	if _, err = bm.Incr("astaxie"); err != nil {
 		t.Error("Incr Error", err)
 	}
 
@@ -43,7 +44,7 @@ func TestRedisCache(t *testing.T) {
 		t.Error("get err")
 	}
 
-	if err = bm.Decr("astaxie"); err != nil {
+	if _, err = bm.Decr("astaxie"); err != nil {
 		t.Error("Decr Error", err)
 	}
 
@@ -90,4 +91,47 @@ func TestRedisCache(t *testing.T) {
 	if err = bm.ClearAll(); err != nil {
 		t.Error("clear all err")
 	}
+}
+
+func TestRedisCache_DeleteLargeSet(t *testing.T) {
+	conf := map[string]string{
+		"conn":     "39.96.187.72:6379",
+		"dbnum":    "3",
+		"password": "Hjd123!@#",
+	}
+	bm := NewRedisCache()
+	err := bm.StartAndGC(conf)
+	if err != nil {
+		t.Error("init err")
+	}
+
+	setKey := "test:set"
+	bm.Delete(setKey)
+	for i := 0; i < 10000; i++ {
+		bm.do("SADD", setKey, i)
+	}
+
+	bm.DeleteLargeSet(setKey)
+}
+
+func TestRedisCache_DeleteLargeHash(t *testing.T) {
+	conf := map[string]string{
+		"conn":     "39.96.187.72:6379",
+		"dbnum":    "3",
+		"password": "Hjd123!@#",
+	}
+	bm := NewRedisCache()
+	err := bm.StartAndGC(conf)
+	if err != nil {
+		t.Error("init err")
+	}
+
+	setKey := "test:hash"
+	bm.Delete(setKey)
+	for i := 0; i < 1000; i++ {
+		key := strconv.Itoa(i)
+		bm.do("HSET", setKey, key, "val"+key)
+	}
+
+	bm.DeleteLargeHash(setKey)
 }

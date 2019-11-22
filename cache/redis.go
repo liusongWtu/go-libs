@@ -155,15 +155,15 @@ func (rc *RedisCache) IsExist(key string) bool {
 }
 
 // Incr increase counter in redis.
-func (rc *RedisCache) Incr(key string) error {
-	_, err := redis.Bool(rc.do("INCRBY", key, 1))
-	return err
+func (rc *RedisCache) Incr(key string) (int64, error) {
+	val, err := redis.Int64(rc.do("INCRBY", key, 1))
+	return val, err
 }
 
 // Decr decrease counter in redis.
-func (rc *RedisCache) Decr(key string) error {
-	_, err := redis.Bool(rc.do("INCRBY", key, -1))
-	return err
+func (rc *RedisCache) Decr(key string) (int64, error) {
+	val, err := redis.Int64(rc.do("INCRBY", key, -1))
+	return val, err
 }
 
 // Hash Multi Set in redis.
@@ -282,4 +282,82 @@ func (rc *RedisCache) connectInit() {
 		IdleTimeout: 180 * time.Second,
 		Dial:        dialFunc,
 	}
+}
+
+func (rc *RedisCache) DeleteLargeSet(key string) error {
+	// Rename the key
+	index, err := rc.Incr("gc:index")
+	if err != nil {
+		return err
+	}
+	newKey := "gc:sets:" + strconv.FormatInt(index, 10)
+	_, err = rc.do("RENAME", key, newKey)
+	if err != nil {
+		return err
+	}
+
+	c := rc.p.Get()
+	defer c.Close()
+
+	var cursor int64
+	var items []string
+	for {
+		values, err := redis.Values(c.Do("SSCAN", newKey, cursor))
+		if err != nil {
+			return err
+		}
+		values, err = redis.Scan(values, &cursor, &items)
+		if err != nil {
+			return err
+		}
+		for _, value := range items {
+			c.Send("SREM", newKey, value)
+		}
+		c.Flush()
+
+		if cursor == 0 {
+			break
+		}
+	}
+	c.Do("DEL", newKey)
+	return nil
+}
+
+func (rc *RedisCache) DeleteLargeHash(key string) error {
+	// Rename the key
+	index, err := rc.Incr("gc:index")
+	if err != nil {
+		return err
+	}
+	newKey := "gc:hashes:" + strconv.FormatInt(index, 10)
+	_, err = rc.do("RENAME", key, newKey)
+	if err != nil {
+		return err
+	}
+
+	c := rc.p.Get()
+	defer c.Close()
+
+	var cursor int64
+	var items []string
+	for {
+		values, err := redis.Values(c.Do("HSCAN", newKey, cursor))
+		if err != nil {
+			return err
+		}
+		values, err = redis.Scan(values, &cursor, &items)
+		if err != nil {
+			return err
+		}
+
+		for i := 0; i < len(items); i = i + 2 {
+			c.Send("HDEL", newKey, items[i])
+		}
+		c.Flush()
+		if cursor == 0 {
+			break
+		}
+	}
+	c.Do("DEL", newKey)
+	return nil
 }
