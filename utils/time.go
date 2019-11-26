@@ -2,6 +2,11 @@ package utils
 
 import "time"
 
+const (
+	TimeLayout string = "2006-01-02 15:04:05"
+	DateLayout string = "2006-01-02"
+)
+
 //获取时间：国内明天上午3点钟
 func GetChinaTomorrow3AM() time.Time {
 	//注意不推荐下面做法

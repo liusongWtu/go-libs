@@ -10,7 +10,6 @@ import (
 const (
 	SysWindows        = "windows"
 	SysMac            = "darwin"
-	TimeLayout string = "2006-01-02 15:04:05"
 )
 
 // GetGOPATHs returns all paths in GOPATH variable.

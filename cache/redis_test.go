@@ -126,7 +126,7 @@ func TestRedisCache_DeleteLargeHash(t *testing.T) {
 		t.Error("init err")
 	}
 
-	setKey := "test:hash"
+	setKey := "signin:hash"
 	bm.Delete(setKey)
 	for i := 0; i < 1000; i++ {
 		key := strconv.Itoa(i)
