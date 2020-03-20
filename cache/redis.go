@@ -31,7 +31,7 @@ var (
 // Cache is Redis cache adapter.
 type RedisCache struct {
 	p         *redis.Pool // redis connection pool
-	conninfo  string
+	conn      string
 	dbNum     int
 	key       string
 	password  string
@@ -239,7 +239,7 @@ func (rc *RedisCache) StartAndGC(conf map[string]string) error {
 	}
 
 	rc.key = conf["key"]
-	rc.conninfo = conf["conn"]
+	rc.conn = conf["conn"]
 	rc.dbNum, _ = strconv.Atoi(conf["dbnum"])
 	rc.password = conf["password"]
 	rc.maxIdle, _ = strconv.Atoi(conf["maxidle"])
@@ -256,7 +256,7 @@ func (rc *RedisCache) StartAndGC(conf map[string]string) error {
 // connect to redis.
 func (rc *RedisCache) connectInit() {
 	dialFunc := func() (c redis.Conn, err error) {
-		c, err = redis.Dial("tcp", rc.conninfo)
+		c, err = redis.Dial("tcp", rc.conn)
 		if err != nil {
 			return nil, err
 		}

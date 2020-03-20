@@ -28,3 +28,18 @@ func GetChinaTomorrow3AMSeconds() uint64 {
 	secondsF := tomorrow3AM.Sub(time.Now()).Seconds()
 	return uint64(secondsF)
 }
+
+func GetChinaTomorrowAMSeconds() uint64 {
+	now := time.Now()
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	t, _ := time.ParseInLocation("2006-01-02", now.AddDate(0, 0, 1).Format("2006-01-02"), loc)
+	secondsF := t.Sub(time.Now()).Seconds()
+	return uint64(secondsF)
+}
+
+func GetLocalTomorrowAMSeconds() int64 {
+	now := time.Now()
+	t, _ := time.ParseInLocation("2006-01-02", now.AddDate(0, 0, 1).Format("2006-01-02"), time.Local)
+	secondsF := t.Sub(time.Now()).Seconds()
+	return int64(secondsF)
+}
