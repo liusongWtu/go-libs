@@ -19,10 +19,10 @@ func NewModel(conn sqlx.SqlConn, c cache.CacheConf) *Model {
 }
 
 // Transaction 事务方式插入多个表的数据
-func (m *Model) Transactions(inserters []TableTransactionFunc) error {
+func (m *Model) Transactions(transactions []TableTransactionFunc) error {
 	err := m.CachedConn.Transact(func(session sqlx.Session) error {
-		for _, inserter := range inserters {
-			err := inserter(session)
+		for _, transaction := range transactions {
+			err := transaction(session)
 			if err != nil {
 				return err
 			}
