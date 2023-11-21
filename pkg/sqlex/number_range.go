@@ -20,7 +20,7 @@ func (c *NumberRangeController[T]) Where(column string) (string, []any) {
 		if len(whereString) > 0 {
 			whereString += " and " + column + "  < ? "
 		} else {
-			whereString = " " + column + "  >= ? "
+			whereString = " " + column + "  < ? "
 		}
 		args = append(args, *c.Max)
 	}
