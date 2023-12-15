@@ -37,6 +37,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/zeromicro/go-zero v1.5.5
 	golang.org/x/crypto v0.12.0
+	golang.org/x/sync v0.3.0
 	golang.org/x/text v0.12.0
 	gopkg.in/yaml.v2 v2.4.0
 )
