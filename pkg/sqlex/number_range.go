@@ -13,6 +13,12 @@ func (c *NumberRangeController[T]) Where(column string) (string, []any) {
 	var whereString string
 	args := make([]any, 0, 2)
 	if c.Min != nil {
+		if c.Max != nil && *c.Max == *c.Min {
+			args = append(args, *c.Min)
+			whereString = " " + column + "  = ? "
+			return whereString, args
+		}
+
 		whereString = " " + column + "  >= ? "
 		args = append(args, *c.Min)
 	}
